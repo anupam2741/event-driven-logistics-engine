@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.project.grpc";
+
+message AvailabilityRequest {
+  double latitude = 1;
+  double longitude = 2;
+  double radius_km = 3;
+}
+
+message AvailabilityResponse {
+  bool is_available = 1;
+  string rider_id = 2;
+}
+message LocationRequest {
+  string rider_id = 1;
+}
+
+message LocationResponse {
+  double latitude = 1;
+  double longitude = 2;
+  bool is_active = 3;
+}
+message ReleaseRiderRequest {
+  string rider_id = 1;
+  string order_id = 2;
+}
+message ReleaseRiderResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+service RiderDiscoveryService {
+  rpc CheckAvailability(AvailabilityRequest) returns (AvailabilityResponse);
+  rpc GetLiveLocation(LocationRequest) returns (LocationResponse);
+  rpc ReleaseRider(ReleaseRiderRequest) returns (ReleaseRiderResponse);
+}
