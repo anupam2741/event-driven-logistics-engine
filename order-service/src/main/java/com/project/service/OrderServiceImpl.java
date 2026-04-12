@@ -1,16 +1,19 @@
 package com.project.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.entity.OrderEntity;
 import com.project.entity.OrderPriority;
 import com.project.entity.OrderStatus;
+import com.project.entity.OutboxEvent;
 import com.project.dto.*;
 import com.project.exception.OrderCancellationException;
 import com.project.exception.OrderNotFoundException;
 import com.project.grpc.AvailabilityResponse;
 import com.project.interfaces.OrderService;
 import com.project.interfaces.OrderTrackingInfo;
-import com.project.kafka.OrderEventProducer;
 import com.project.repository.OrderRepository;
+import com.project.repository.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +27,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final OrderEventProducer orderEventProducer;
+    private final OutboxRepository outboxRepository;
+    private final ObjectMapper objectMapper;
     private final OrderSafetyNetService orderSafetyNetService;
     private final OrderTrackingClient trackingClient;
 
@@ -55,7 +59,12 @@ public class OrderServiceImpl implements OrderService {
                 saveOrder.getRiderId(),
                 saveOrder.getStatus().name(),
                 saveOrder.getCreatedAt());
-        orderEventProducer.sendOrderCreatedEvent(orderEvent);
+        try {
+            String payload = objectMapper.writeValueAsString(orderEvent);
+            outboxRepository.save(new OutboxEvent(saveOrder.getId().toString(), "order-topic", payload));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize order event for outbox", e);
+        }
 
         return new OrderResponseDto(orderEntity.getId().toString(),orderEntity.getStatus().toString(),"Order Placed");
 
