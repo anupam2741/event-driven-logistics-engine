@@ -38,6 +38,12 @@
         <groupId>javax.annotation</groupId>
         <artifactId>javax.annotation-api</artifactId>
     </dependency>
+
+    <!-- Validation API for Coordinates constraints (implementation provided by each service) -->
+    <dependency>
+        <groupId>jakarta.validation</groupId>
+        <artifactId>jakarta.validation-api</artifactId>
+    </dependency>
 </dependencies>
 
     <build>

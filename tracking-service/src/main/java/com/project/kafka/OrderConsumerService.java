@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class OrderConsumerService {
     private final RiderAssignmentService riderAssignmentService;
-    @KafkaListener(topics = "order-topic",groupId = "tracking-group")
+    @KafkaListener(topics = KafkaTopics.ORDER_CREATED, groupId = "tracking-group")
     public void handleOrderCreated(OrderEvent orderEvent) {
         riderAssignmentService.assignRiders(orderEvent);
         log.info("event :{}",orderEvent);

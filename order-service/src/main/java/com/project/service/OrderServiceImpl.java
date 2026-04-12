@@ -11,6 +11,7 @@ import com.project.exception.OrderCancellationException;
 import com.project.exception.OrderNotFoundException;
 import com.project.grpc.AvailabilityResponse;
 import com.project.interfaces.OrderService;
+import com.project.kafka.KafkaTopics;
 import com.project.interfaces.OrderTrackingInfo;
 import com.project.repository.OrderRepository;
 import com.project.repository.OutboxRepository;
@@ -61,7 +62,7 @@ public class OrderServiceImpl implements OrderService {
                 saveOrder.getCreatedAt());
         try {
             String payload = objectMapper.writeValueAsString(orderEvent);
-            outboxRepository.save(new OutboxEvent(saveOrder.getId().toString(), "order-topic", payload));
+            outboxRepository.save(new OutboxEvent(saveOrder.getId().toString(), KafkaTopics.ORDER_CREATED, payload));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize order event for outbox", e);
         }

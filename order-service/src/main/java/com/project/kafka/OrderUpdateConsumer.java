@@ -16,7 +16,7 @@ public class OrderUpdateConsumer {
     @Autowired
     private OrderRepository orderRepository;
 
-    @KafkaListener(topics = "order-status-updates", groupId = "order-service-group")
+    @KafkaListener(topics = KafkaTopics.ORDER_STATUS_UPDATES, groupId = "order-service-group")
     public void handleStatusUpdate(OrderStatusUpdateEvent event) {
         log.info("Updating order {} to status {}", event.orderId(), event.status());
         String cleanOrderId = event.orderId().replace("\"", "").trim();

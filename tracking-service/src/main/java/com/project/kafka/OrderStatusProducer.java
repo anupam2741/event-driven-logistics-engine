@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 public class OrderStatusProducer {
     private final KafkaTemplate<String, OrderStatusUpdateEvent> kafkaTemplate;
     public void sendOrderStatusUpdateEvent(OrderStatusUpdateEvent orderStatusUpdateEvent){
-        kafkaTemplate.send("order-status-updates", orderStatusUpdateEvent.orderId(), orderStatusUpdateEvent);
+        kafkaTemplate.send(KafkaTopics.ORDER_STATUS_UPDATES, orderStatusUpdateEvent.orderId(), orderStatusUpdateEvent);
     }
 
 }

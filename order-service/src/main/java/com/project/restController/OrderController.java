@@ -4,6 +4,7 @@ import com.project.dto.OrderRequestDto;
 import com.project.dto.OrderResponseDto;
 import com.project.dto.TrackingResponseDto;
 import com.project.interfaces.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderRequestDto orderRequest){
+    public ResponseEntity<OrderResponseDto> createOrder(@Valid @RequestBody OrderRequestDto orderRequest){
         log.info("order created");
 
         OrderResponseDto orderResponse = orderService.createOrder(orderRequest);
