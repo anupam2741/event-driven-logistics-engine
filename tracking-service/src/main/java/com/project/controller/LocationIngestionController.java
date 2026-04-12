@@ -4,6 +4,7 @@ import com.project.dto.OrderStatusUpdateEvent;
 import com.project.dto.RiderLocationPing;
 import com.project.kafka.OrderStatusProducer;
 import com.project.service.RiderAssignmentService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.geo.Point;
@@ -31,7 +32,7 @@ public class LocationIngestionController {
     private static final String ACTIVE_SHIPMENTS_KEY = "active_shipments";
 
     @PostMapping("/ping")
-    public ResponseEntity<Void> updateLocation(@RequestBody RiderLocationPing ping) {
+    public ResponseEntity<Void> updateLocation(@Valid @RequestBody RiderLocationPing ping) {
         redisTemplate.opsForGeo().add(
                 ACTIVE_SHIPMENTS_KEY,
                 new Point(ping.coordinates().lng(), ping.coordinates().lat()),

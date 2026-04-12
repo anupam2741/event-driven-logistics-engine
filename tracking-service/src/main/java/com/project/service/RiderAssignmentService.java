@@ -17,9 +17,11 @@ import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -41,7 +43,20 @@ public class RiderAssignmentService {
     private static final String AVAILABLE_RIDERS_KEY = "available_riders";
     private static final String ACTIVE_SHIPMENTS_KEY = "active_shipments";
 
-    @Transactional // CRITICAL: Ensures DB and Redis logic happens as one unit
+    // Atomically moves a rider from available_riders to active_shipments.
+    // KEYS[1] = source (available_riders), KEYS[2] = dest (active_shipments), ARGV[1] = riderId.
+    // Redis executes Lua scripts atomically — no other command can interleave between GEOADD and ZREM.
+    private static final RedisScript<Long> MOVE_RIDER_SCRIPT = RedisScript.of(
+        "local pos = redis.call('GEOPOS', KEYS[1], ARGV[1]) " +
+        "if pos[1] then " +
+        "  redis.call('GEOADD', KEYS[2], pos[1][1], pos[1][2], ARGV[1]) " +
+        "  redis.call('ZREM', KEYS[1], ARGV[1]) " +
+        "end " +
+        "return 1",
+        Long.class
+    );
+
+    @Transactional // DB-only; Redis compensation is handled manually on failure
     public void assignRiders(OrderEvent orderEvent) {
         String riderId = orderEvent.riderId();
         String orderId = orderEvent.orderId();
@@ -53,8 +68,17 @@ public class RiderAssignmentService {
         int updatedRows = riderRepository.claimRiderIfAvailable(riderId, orderId);
 
         if (updatedRows > 0) {
-            // 2. MOVE FIRST: Make the rider undiscoverable for new gRPC checks
-            moveRiderToActiveIndex(riderId);
+            // 2. MOVE FIRST: Make the rider undiscoverable for new gRPC checks.
+            // If Redis fails here, compensate any partial state and rethrow so
+            // @Transactional rolls back the DB claim — keeping DB and Redis consistent.
+            try {
+                moveRiderToActiveIndex(riderId);
+            } catch (Exception e) {
+                log.error("Redis transition failed for rider {} — compensating and rolling back DB claim", riderId, e);
+                // Remove from active_shipments in case the GEOADD succeeded before the failure
+                redisTemplate.opsForGeo().remove(ACTIVE_SHIPMENTS_KEY, riderId);
+                throw new RuntimeException("Redis transition failed for rider " + riderId + "; DB claim rolled back", e);
+            }
             try {
                 var positions = redisTemplate.opsForGeo().position("active_shipments", riderId);
                 if (positions == null || positions.isEmpty() || positions.getFirst() == null) {
@@ -97,18 +121,14 @@ public class RiderAssignmentService {
     }
 
     private void moveRiderToActiveIndex(String riderId) {
-        try {
-            // Get last known position from the availability index
-            var pos = redisTemplate.opsForGeo().position(AVAILABLE_RIDERS_KEY, riderId);
-            if (pos != null && !pos.isEmpty()) {
-                // Add to active shipments for tracking
-                redisTemplate.opsForGeo().add(ACTIVE_SHIPMENTS_KEY, pos.getFirst(), riderId);
-                // Remove from available pool
-                redisTemplate.opsForGeo().remove(AVAILABLE_RIDERS_KEY, riderId);
-            }
-        } catch (Exception e) {
-            log.error("Error transitioning rider {} to active index", riderId, e);
-        }
+        // Single atomic round-trip: GEOPOS + GEOADD + ZREM execute as one Lua script.
+        // No other Redis command can interleave between the add and remove.
+        // Any RedisException propagates to the caller, which handles compensation.
+        redisTemplate.execute(
+            MOVE_RIDER_SCRIPT,
+            List.of(AVAILABLE_RIDERS_KEY, ACTIVE_SHIPMENTS_KEY),
+            riderId
+        );
     }
     public void releaseRider(String riderId, Coordinates lastLocation) {
         redisTemplate.opsForGeo().remove("active_shipments", riderId);
