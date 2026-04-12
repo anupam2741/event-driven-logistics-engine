@@ -78,6 +78,7 @@ public class RiderDiscoveryGrpcServer extends RiderDiscoveryServiceGrpc.RiderDis
         responseObserver.onCompleted();
 }
         catch(Exception e){
+            log.error("checkAvailability failed for request [{}, {}]", request.getLatitude(), request.getLongitude(), e);
             responseObserver.onError(Status.INTERNAL.asException());
         }
     }

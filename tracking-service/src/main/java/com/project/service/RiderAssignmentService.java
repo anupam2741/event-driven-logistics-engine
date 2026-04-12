@@ -56,18 +56,22 @@ public class RiderAssignmentService {
             // 2. MOVE FIRST: Make the rider undiscoverable for new gRPC checks
             moveRiderToActiveIndex(riderId);
             try {
-                Point point = redisTemplate.opsForGeo().position("active_shipments", riderId).getFirst();
-                AssignmentMessage message = new AssignmentMessage(
-                        orderEvent.riderId(),
-                        orderEvent.orderId(), // or your actual Order UUID
-                        new Coordinates(point.getY(), point.getX()),
-                        new Coordinates(orderEvent.pickupAddress().lat(), orderEvent.pickupAddress().lng()),
-                        new Coordinates(orderEvent.deliveryAddress().lat(), orderEvent.deliveryAddress().lng())
-                );
-                String json = objectMapper.writeValueAsString(message);
-                // Publish to Redis channel 'rider_assignments'
-                riderNavigationService.publishRedis("rider_missions", json);
-                log.info("Broadcasted assignment for {} to simulator", riderId);
+                var positions = redisTemplate.opsForGeo().position("active_shipments", riderId);
+                if (positions == null || positions.isEmpty() || positions.getFirst() == null) {
+                    log.warn("No position found in active_shipments for rider {} after move — skipping mission broadcast", riderId);
+                } else {
+                    Point point = positions.getFirst();
+                    AssignmentMessage message = new AssignmentMessage(
+                            orderEvent.riderId(),
+                            orderEvent.orderId(),
+                            new Coordinates(point.getY(), point.getX()),
+                            new Coordinates(orderEvent.pickupAddress().lat(), orderEvent.pickupAddress().lng()),
+                            new Coordinates(orderEvent.deliveryAddress().lat(), orderEvent.deliveryAddress().lng())
+                    );
+                    String json = objectMapper.writeValueAsString(message);
+                    riderNavigationService.publishRedis("rider_missions", json);
+                    log.info("Broadcasted assignment for {} to simulator", riderId);
+                }
             }
             catch (JsonProcessingException e) {
                 log.error("Failed to serialize mission for rider {}", orderEvent.riderId());

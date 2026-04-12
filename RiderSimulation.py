@@ -1,4 +1,5 @@
 import asyncio
+import os
 import redis
 import httpx
 import json
@@ -6,8 +7,8 @@ import logging
 import math
 
 # --- CONFIGURATION ---
-REDIS_HOST = '152.67.4.229'
-REDIS_PORT = 6379
+REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
 REDIS_CHANNEL = 'rider_missions'
 JAVA_INGESTION_URL = "http://localhost:8080/api/tracking/ping"
 
