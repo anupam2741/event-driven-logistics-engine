@@ -116,8 +116,12 @@ public class RiderAssignmentService {
             return;
         }
 
-        // If we reach here, the 'Soft Lock' expired or someone else claimed them
-        log.warn("Failed to assign Rider {}. Either status changed or lock expired.", riderId);
+        // Lock expired and another order already claimed this rider — cancel the stuck order
+        // so it doesn't sit in ACCEPTED state indefinitely with an unresolvable riderId.
+        log.warn("Failed to assign Rider {} to Order {} — rider already claimed. Cancelling order.", riderId, orderId);
+        OrderStatusUpdateEvent cancelEvent = new OrderStatusUpdateEvent(orderId, "CANCELLED", LocalDateTime.now());
+        orderStatusProducer.sendOrderStatusUpdateEvent(cancelEvent);
+        log.info("Sent CANCELLED status for order {} via Kafka", orderId);
     }
 
     private void moveRiderToActiveIndex(String riderId) {
