@@ -13,7 +13,7 @@ REDIS_CHANNEL = 'rider_missions'
 JAVA_INGESTION_URL = "http://localhost:8080/api/tracking/ping"
 
 PING_INTERVAL = 2
-MOVEMENT_STEP = 0.02
+MOVEMENT_STEP = 0.003  # ~333 m per step; at 2s/step the delivery leg takes ~1–2 min
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)

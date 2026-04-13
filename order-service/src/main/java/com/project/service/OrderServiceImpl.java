@@ -42,8 +42,8 @@ public class OrderServiceImpl implements OrderService {
         if(isRiderAvailable){
         OrderEntity orderEntity = OrderEntity.builder()
                 .customerId(orderMessage.customerId())
-                .pickupAddress(orderMessage.pickupAddress().toString())
-                .deliveryAddress(orderMessage.deliveryAddress().toString())
+                .pickupAddress(orderMessage.pickupAddress())
+                .deliveryAddress(orderMessage.deliveryAddress())
                 .totalAmount(orderMessage.totalAmount().doubleValue())
                 .status(OrderStatus.ACCEPTED)
                 .priority(OrderPriority.valueOf(orderMessage.priority().toUpperCase()))

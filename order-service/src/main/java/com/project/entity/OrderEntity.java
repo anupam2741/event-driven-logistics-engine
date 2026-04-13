@@ -1,5 +1,7 @@
 package com.project.entity;
 
+import com.project.converter.CoordinatesConverter;
+import com.project.dto.Coordinates;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,10 +26,12 @@ public class OrderEntity {
     private UUID id;
     @Column(nullable = false)
     private String customerId;
+    @Convert(converter = CoordinatesConverter.class)
     @Column(nullable = false)
-    private String pickupAddress;
+    private Coordinates pickupAddress;
+    @Convert(converter = CoordinatesConverter.class)
     @Column(nullable = false)
-    private String deliveryAddress;
+    private Coordinates deliveryAddress;
     @Column(nullable = false)
     private Double totalAmount;
     @Enumerated(EnumType.STRING)
