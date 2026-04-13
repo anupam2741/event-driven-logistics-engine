@@ -32,7 +32,13 @@ public class OrderUpdateConsumer {
         String cleanOrderId = event.orderId().replace("\"", "").trim();
 
         orderRepository.findById(UUID.fromString(cleanOrderId)).ifPresent(order -> {
-            order.setStatus(OrderStatus.valueOf((event.status())));
+            OrderStatus newStatus = OrderStatus.valueOf(event.status());
+            if (order.getStatus().ordinal() >= newStatus.ordinal()) {
+                log.warn("Skipping stale status update for order {} — current={}, incoming={}",
+                        cleanOrderId, order.getStatus(), newStatus);
+                return;
+            }
+            order.setStatus(newStatus);
             orderRepository.save(order);
         });
     }
