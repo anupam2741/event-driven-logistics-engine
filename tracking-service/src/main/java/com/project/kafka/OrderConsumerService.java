@@ -1,6 +1,7 @@
 package com.project.kafka;
 
 import com.project.dto.OrderEvent;
+import com.project.dto.OrderStatusUpdateEvent;
 import com.project.service.RiderAssignmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,11 +13,14 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class OrderConsumerService {
     private final RiderAssignmentService riderAssignmentService;
+    private final OrderStatusProducer orderStatusProducer;
 
     @RetryableTopic(
             attempts = "3",
@@ -34,5 +38,9 @@ public class OrderConsumerService {
                           @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
         log.error("Order event exhausted retries and landed in DLT. topic={}, orderId={}",
                 topic, orderEvent.orderId());
+        orderStatusProducer.sendOrderStatusUpdateEvent(
+                new OrderStatusUpdateEvent(orderEvent.orderId(), "CANCELLED", java.time.LocalDateTime.now())
+        );
+        log.info("Sent CANCELLED status for stuck order {} after DLT", orderEvent.orderId());
     }
 }

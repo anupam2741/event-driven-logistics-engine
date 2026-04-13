@@ -37,6 +37,7 @@
 		<grpc.version>1.62.2</grpc.version>
 		<protobuf-java.version>3.25.3</protobuf-java.version>
 		<grpc-spring.version>3.1.0.RELEASE</grpc-spring.version>
+		<lombok.version>1.18.36</lombok.version>
 	</properties>
 	<dependencies>
 		<dependency>
