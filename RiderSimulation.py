@@ -10,7 +10,8 @@ import math
 REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
 REDIS_CHANNEL = 'rider_missions'
-JAVA_INGESTION_URL = "http://localhost:8080/api/tracking/ping"
+JAVA_INGESTION_URL = os.environ.get('TRACKING_URL', 'http://localhost:8080/api/tracking/ping')
+API_KEY = os.environ.get('API_KEY', '')
 
 PING_INTERVAL = 2
 MOVEMENT_STEP = 0.003  # ~333 m per step; at 2s/step the delivery leg takes ~1–2 min
@@ -64,7 +65,8 @@ async def move_to_target(client, order_id, rider_id, start_lat, start_lng, targe
         }
 
         try:
-            response = await client.post(JAVA_INGESTION_URL, json=payload, timeout=5.0)
+            response = await client.post(JAVA_INGESTION_URL, json=payload, timeout=5.0,
+                                         headers={"X-API-Key": API_KEY})
             if response.status_code in [200, 202]:
                 status_log = f" | Status: {current_status}" if current_status else ""
                 logger.info(f"[{rider_id}] PING SUCCESS -> {label} (Dist Rem: {distance:.4f})")
