@@ -27,6 +27,7 @@ jobs:
           API_KEY=${{ secrets.API_KEY }}
           TRACKING_SERVICE_HOST=tracking-service
           TRACKING_URL=http://tracking-service:8080/api/tracking/ping
+          SERVER_HOST=${{ secrets.SERVER_HOST }}
           EOF
 
       - name: Build all modules

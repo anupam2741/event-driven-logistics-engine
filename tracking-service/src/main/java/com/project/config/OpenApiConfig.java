@@ -10,10 +10,15 @@ import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.List;
 
 @Configuration
 public class OpenApiConfig {
+
+    @Value("${SERVER_URL:http://localhost:8080}")
+    private String serverUrl;
 
     @Bean
     public OpenAPI trackingServiceOpenAPI() {
@@ -24,7 +29,7 @@ public class OpenApiConfig {
                         .version("1.0.0")
                         .contact(new Contact().name("Logistics System")))
                 .servers(List.of(
-                        new Server().url("http://localhost:8080").description("Local")))
+                        new Server().url(serverUrl).description("Server")))
                 .components(new Components()
                         .addSecuritySchemes("ApiKey", new SecurityScheme()
                                 .type(SecurityScheme.Type.APIKEY)

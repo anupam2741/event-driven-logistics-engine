@@ -8,6 +8,8 @@ services:
       - "8082:8080"
       # 9090 (gRPC) is intentionally not published — internal traffic only
     env_file: .env
+    environment:
+      SERVER_URL: ${SERVER_HOST}:8082
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health/liveness"]
@@ -23,6 +25,8 @@ services:
     ports:
       - "8081:8081"
     env_file: .env
+    environment:
+      SERVER_URL: ${SERVER_HOST}:8081
     restart: unless-stopped
     depends_on:
       tracking-service:
