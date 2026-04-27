@@ -29,11 +29,8 @@ jobs:
           TRACKING_URL=http://tracking-service:8080/api/tracking/ping
           EOF
 
-      - name: Build common-lib
-        run: mvn clean install -pl common-lib -DskipTests
-
-      - name: Build JARs
-        run: mvn clean package -pl order-service,tracking-service -DskipTests
+      - name: Build all modules
+        run: mvn clean install -DskipTests
 
       - name: Stop existing containers
         run: docker compose down --remove-orphans
