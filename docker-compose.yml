@@ -1,0 +1,46 @@
+services:
+
+  tracking-service:
+    build:
+      context: tracking-service
+    image: logistic/tracking-service:latest
+    ports:
+      - "8082:8080"
+      # 9090 (gRPC) is intentionally not published — internal traffic only
+    env_file: .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health/liveness"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+
+  order-service:
+    build:
+      context: order-service
+    image: logistic/order-service:latest
+    ports:
+      - "8081:8081"
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      tracking-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health/liveness"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+
+  rider-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.simulator
+    image: logistic/rider-simulator:latest
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      tracking-service:
+        condition: service_healthy

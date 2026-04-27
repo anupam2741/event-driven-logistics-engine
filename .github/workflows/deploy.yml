@@ -1,0 +1,40 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Write .env file
+        run: |
+          cat > .env << EOF
+          DB_URL=${{ secrets.DB_URL }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          KAFKA_BOOTSTRAP_SERVERS=${{ secrets.KAFKA_BOOTSTRAP_SERVERS }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          API_KEY=${{ secrets.API_KEY }}
+          TRACKING_SERVICE_HOST=tracking-service
+          TRACKING_URL=http://tracking-service:8080/api/tracking/ping
+          EOF
+
+      - name: Build JARs
+        run: mvn clean package -DskipTests
+
+      - name: Stop existing containers
+        run: docker compose down --remove-orphans
+        continue-on-error: true
+
+      - name: Build and start containers
+        run: docker compose up -d --build
+
+      - name: Remove unused Docker images
+        run: docker image prune -f
