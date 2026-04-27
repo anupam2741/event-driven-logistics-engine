@@ -8,6 +8,9 @@ jobs:
   deploy:
     runs-on: self-hosted
 
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,8 +29,11 @@ jobs:
           TRACKING_URL=http://tracking-service:8080/api/tracking/ping
           EOF
 
+      - name: Build common-lib
+        run: mvn clean install -pl common-lib -DskipTests
+
       - name: Build JARs
-        run: mvn clean package -DskipTests
+        run: mvn clean package -pl order-service,tracking-service -DskipTests
 
       - name: Stop existing containers
         run: docker compose down --remove-orphans
