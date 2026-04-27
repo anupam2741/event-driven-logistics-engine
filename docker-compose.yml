@@ -13,7 +13,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health/liveness"]
       interval: 30s
       timeout: 5s
-      start_period: 60s
+      start_period: 90s
       retries: 3
 
   order-service:
@@ -31,7 +31,7 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health/liveness"]
       interval: 30s
       timeout: 5s
-      start_period: 60s
+      start_period: 90s
       retries: 3
 
   rider-simulator:
