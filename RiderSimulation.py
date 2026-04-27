@@ -9,6 +9,7 @@ import math
 # --- CONFIGURATION ---
 REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
+REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', None)
 REDIS_CHANNEL = 'rider_missions'
 JAVA_INGESTION_URL = os.environ.get('TRACKING_URL', 'http://localhost:8080/api/tracking/ping')
 API_KEY = os.environ.get('API_KEY', '')
@@ -110,7 +111,7 @@ async def simulate_rider_lifecycle(rider_data):
 
 def _blocking_redis_listener(loop):
     try:
-        r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+        r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, decode_responses=True)
         pubsub = r.pubsub()
         pubsub.subscribe(REDIS_CHANNEL)
         logger.info(f"LISTENING ON REDIS: {REDIS_HOST}:{REDIS_PORT} CHANNEL: {REDIS_CHANNEL}")
