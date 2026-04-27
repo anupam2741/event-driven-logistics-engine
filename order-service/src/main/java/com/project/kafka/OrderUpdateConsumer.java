@@ -29,13 +29,13 @@ public class OrderUpdateConsumer {
     @KafkaListener(topics = KafkaTopics.ORDER_STATUS_UPDATES, groupId = "order-service-group")
     public void handleStatusUpdate(OrderStatusUpdateEvent event) {
         log.info("Updating order {} to status {}", event.orderId(), event.status());
-        String cleanOrderId = event.orderId().replace("\"", "").trim();
+        String orderId = event.orderId();
 
-        orderRepository.findById(UUID.fromString(cleanOrderId)).ifPresent(order -> {
+        orderRepository.findById(UUID.fromString(orderId)).ifPresent(order -> {
             OrderStatus newStatus = OrderStatus.valueOf(event.status());
             if (order.getStatus().ordinal() >= newStatus.ordinal()) {
                 log.warn("Skipping stale status update for order {} — current={}, incoming={}",
-                        cleanOrderId, order.getStatus(), newStatus);
+                        orderId, order.getStatus(), newStatus);
                 return;
             }
             order.setStatus(newStatus);
