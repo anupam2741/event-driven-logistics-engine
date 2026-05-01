@@ -1,6 +1,7 @@
 package com.project.dto;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record OrderEvent(
@@ -8,7 +9,7 @@ public record OrderEvent(
         String customerId,
         Coordinates pickupAddress,
         Coordinates deliveryAddress,
-        Double totalAmount,
+        BigDecimal totalAmount,
         String priority,
         String riderId,
         String status,

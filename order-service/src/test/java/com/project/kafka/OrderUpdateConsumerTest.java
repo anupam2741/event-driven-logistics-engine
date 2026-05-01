@@ -38,7 +38,7 @@ class OrderUpdateConsumerTest {
                 .customerId("CUST001")
                 .status(OrderStatus.ACCEPTED)
                 .priority(OrderPriority.MEDIUM)
-                .totalAmount(100.0)
+                .totalAmount(new java.math.BigDecimal("100.00"))
                 .build();
         order.setId(orderId);
     }

@@ -58,7 +58,7 @@ class OrderServiceImplTest {
                 .customerId("CUST001")
                 .pickupAddress(PICKUP)
                 .deliveryAddress(DELIVERY)
-                .totalAmount(150.0)
+                .totalAmount(BigDecimal.valueOf(150.0))
                 .status(OrderStatus.ACCEPTED)
                 .priority(OrderPriority.MEDIUM)
                 .riderId(RIDER_ID)

@@ -44,7 +44,7 @@ public class OrderServiceImpl implements OrderService {
                 .customerId(orderMessage.customerId())
                 .pickupAddress(orderMessage.pickupAddress())
                 .deliveryAddress(orderMessage.deliveryAddress())
-                .totalAmount(orderMessage.totalAmount().doubleValue())
+                .totalAmount(orderMessage.totalAmount())
                 .status(OrderStatus.ACCEPTED)
                 .priority(OrderPriority.valueOf(orderMessage.priority().toUpperCase()))
                 .riderId(availabilityResponse.getRiderId())

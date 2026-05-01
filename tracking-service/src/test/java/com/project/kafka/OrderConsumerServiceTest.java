@@ -30,7 +30,7 @@ class OrderConsumerServiceTest {
                 "order-123", "CUST001",
                 new Coordinates(12.97, 77.59),
                 new Coordinates(12.98, 77.61),
-                150.0, "MEDIUM", "RIDER_001", "ACCEPTED", LocalDateTime.now()
+                new java.math.BigDecimal("150.00"), "MEDIUM", "RIDER_001", "ACCEPTED", LocalDateTime.now()
         );
     }
 

@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -32,8 +33,8 @@ public class OrderEntity {
     @Convert(converter = CoordinatesConverter.class)
     @Column(nullable = false)
     private Coordinates deliveryAddress;
-    @Column(nullable = false)
-    private Double totalAmount;
+    @Column(nullable = false, precision = 19, scale = 4)
+    private BigDecimal totalAmount;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
